@@ -1,136 +1,97 @@
 function ticTacToe() {
+  // initialize game board
   const board = [
-    ['', '', ''],
-    ['', '', ''],
-    ['', '', '']
-  ];
-
-  const winningCombinations = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [6, 4, 2]
+    [' ', ' ', ' '],
+    [' ', ' ', ' '],
+    [' ', ' ', ' '],
   ];
   
-  function makeMove(board, player, move) {
-    board[move[0]][move[1]] = player;
-  }
-
-  function isValidMove(board, move) {
-    return (
-      board[move[0]][move[1]] === '' &&
-      (move[0] >= 0 && move[0] <= 2) &&
-      (move[1] >= 0 && move[1] <= 2)
-    );
-  }
-
-  function getAvailableMoves(board) {
-    const moves = [];
+  // player 1 is X, player 2 is O
+  let player = 'X';
+  
+  // track whether game is over
+  let gameOver = false;
+  
+  // helper function to check if a player has won
+  const checkWin = () => {
+    // check rows
     for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        if (board[i][j] === '') {
-          moves.push([i, j]);
-        }
-      }
-    }
-    return moves;
-  }
-
-  function hasWon(board, player) {
-    for (const combination of winningCombinations) {
-      let hasWon = true;
-      for (const index of combination) {
-        hasWon = hasWon && board[index[0]][index[1]] === player;
-      }
-      if (hasWon) {
+      if (board[i][0] === player && board[i][1] === player && board[i][2] === player) {
         return true;
       }
     }
+    
+    // check columns
+    for (let i = 0; i < 3; i++) {
+      if (board[0][i] === player && board[1][i] === player && board[2][i] === player) {
+        return true;
+      }
+    }
+    
+    // check diagonals
+    if (board[0][0] === player && board[1][1] === player && board[2][2] === player) {
+      return true;
+    }
+    
+    if (board[2][0] === player && board[1][1] === player && board[0][2] === player) {
+      return true;
+    }
+    
     return false;
-  }
-
-  function isDraw(board) {
-    return getAvailableMoves(board).length === 0;
-  }
-
-  function minimax(board, depth, isMaximizing) {
-    if (hasWon(board, 'X')) {
-      return 10 - depth;
-    } else if (hasWon(board, 'O')) {
-      return depth - 10;
-    } else if (isDraw(board)) {
-      return 0;
-    }
-
-    if (isMaximizing) {
-      let bestScore = -Infinity;
-      for (const move of getAvailableMoves(board)) {
-        const newBoard = board.map(row => row.slice());
-        makeMove(newBoard, 'X', move);
-        const score = minimax(newBoard, depth + 1, false);
-        if (score > bestScore) {
-          bestScore = score;
+  };
+  
+  // helper function to check if board is full
+  const checkFull = () => {
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === ' ') {
+          return false;
         }
       }
-      return bestScore;
-    } else {
-      let bestScore = Infinity;
-      for (const move of getAvailableMoves(board)) {
-        const newBoard = board.map(row => row.slice());
-        makeMove(newBoard, 'O', move);
-        const score = minimax(newBoard, depth + 1, true);
-        if (score < bestScore) {
-          bestScore = score;
-        }
-      }
-      return bestScore;
     }
-  }
-
-  function getBestMove(board) {
-    let bestScore = -Infinity;
-    let bestMove;
-    for (const move of getAvailableMoves(board)) {
-      const newBoard = board.map(row => row.slice());
-      makeMove(newBoard, 'X', move);
-      const score = minimax(newBoard, 0, false);
-      if (score > bestScore) {
-        bestScore = score;
-        bestMove = move;
-      }
-    }
-    return bestMove;
-  }
-
-  while (true) {
-    const humanMove = prompt('Enter your move (row col): ');
-    const move = humanMove.split(' ').map(n => parseInt(n));
-    if (!isValidMove(board, move)) {
-      alert('Invalid move!');
+    
+    return true;
+  };
+  
+  // main game loop
+  while (!gameOver) {
+    // print current game board
+    console.log(`${board[0][0]}|${board[0][1]}|${board[0][2]}`);
+    console.log(`${board[1][0]}|${board[1][1]}|${board[1][2]}`);
+    console.log(`${board[2][0]}|${board[2][1]}|${board[2][2]}`);
+    
+    // get player input
+    const input = prompt(`${player}'s turn. Enter row and column (ex. 1 2)`);
+    const row = Number(input[0]);
+    const col = Number(input[2]);
+    
+    // validate input
+    if (row < 1 || row > 3 || col < 1 || col > 3) {
+      console.log('Invalid input');
       continue;
     }
-    makeMove(board, 'O', move);
-    console.log(board.map(row => row.join(' ')).join('\n'));
-    if (hasWon(board, 'O')) {
-      alert('You won!');
-      break;
-    } else if (isDraw(board)) {
-      alert('Draw!');
-      break;
+    
+    // update game board
+    if (board[row - 1][col - 1] === ' ') {
+      board[row - 1][col - 1] = player;
+    } else {
+      console.log('Invalid input');
+      continue;
     }
-    const aiMove = getBestMove(board);
-    makeMove(board, 'X', aiMove);
-    console.log(board.map(row => row.join(' ')).join('\n'));
-    if (hasWon(board, 'X')) {
-      alert('You lost!');
-      break;
-    } else if (isDraw(board)) {
-      alert('Draw!');
-      break;
+    
+    // check for win
+    if (checkWin()) {
+      gameOver = true;
+      console.log(`${player} wins!`);
+    // check for draw
+    } else if (checkFull()) {
+      gameOver = true;
+      console.log('Draw!');
+    // switch players
+    } else {
+      player = player === 'X' ? 'O' : 'X';
     }
   }
 }
+
+ticTacToe();
